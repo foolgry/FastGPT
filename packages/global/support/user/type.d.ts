@@ -14,9 +14,8 @@ export type UserModelSchema = {
   timezone: string;
   status: `${UserStatusEnum}`;
   lastLoginTmbId?: string;
-  openaiAccount?: {
-    key: string;
-    baseUrl: string;
+  fastgpt_sem?: {
+    keyword: string;
   };
 };
 
@@ -26,7 +25,6 @@ export type UserType = {
   avatar: string;
   timezone: string;
   promotionRate: UserModelSchema['promotionRate'];
-  openaiAccount: UserModelSchema['openaiAccount'];
   team: TeamTmbItemType;
   standardInfo?: standardInfoType;
   notificationAccount?: string;

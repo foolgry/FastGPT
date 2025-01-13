@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Flex,
   Box,
@@ -31,7 +31,8 @@ import { cardStyles } from '../constants';
 import dynamic from 'next/dynamic';
 import { useSystem } from '@fastgpt/web/hooks/useSystem';
 import { useUserStore } from '@/web/support/user/useUserStore';
-import Tag from '@fastgpt/web/components/common/Tag';
+import { useMount } from 'ahooks';
+
 const DetailLogsModal = dynamic(() => import('./DetailLogsModal'));
 
 const Logs = () => {
@@ -41,9 +42,9 @@ const Logs = () => {
   const appId = useContextSelector(AppContext, (v) => v.appId);
   const { teamMembers, loadAndGetTeamMembers } = useUserStore();
 
-  useEffect(() => {
+  useMount(() => {
     loadAndGetTeamMembers();
-  }, []);
+  });
 
   const [dateRange, setDateRange] = useState<DateRangeType>({
     from: addDays(new Date(), -7),
@@ -129,23 +130,24 @@ const Logs = () => {
                   onClick={() => setDetailLogsId(item.id)}
                 >
                   <Td>
-                    <Box>{t(ChatSourceMap[item.source]?.name || ('UnKnow' as any))}</Box>
+                    {/* @ts-ignore */}
+                    <Box>{t(ChatSourceMap[item.source]?.name) || item.source}</Box>
                     <Box color={'myGray.500'}>{dayjs(item.time).format('YYYY/MM/DD HH:mm')}</Box>
                   </Td>
                   <Td>
                     <Box>
-                      {item.source === 'share' ? (
+                      {!!item.outLinkUid ? (
                         item.outLinkUid
                       ) : (
-                        <Tag key={item._id} type={'fill'} colorSchema="white">
+                        <HStack>
                           <Avatar
-                            src={teamMembers.find((v) => v.tmbId === item.tmbId)?.avatar}
+                            src={teamMembers?.find((v) => v.tmbId === item.tmbId)?.avatar}
                             w="1.25rem"
                           />
                           <Box fontSize={'sm'} ml={1}>
-                            {teamMembers.find((v) => v.tmbId === item.tmbId)?.memberName}
+                            {teamMembers?.find((v) => v.tmbId === item.tmbId)?.memberName}
                           </Box>
-                        </Tag>
+                        </HStack>
                       )}
                     </Box>
                   </Td>

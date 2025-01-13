@@ -18,9 +18,9 @@ import {
   Flex
 } from '@chakra-ui/react';
 import type { ButtonProps, MenuItemProps } from '@chakra-ui/react';
-import { ChevronDownIcon } from '@chakra-ui/icons';
 import MyIcon from '../Icon';
 import { useRequest2 } from '../../../hooks/useRequest';
+import MyDivider from '../MyDivider';
 
 export type SelectProps<T = any> = ButtonProps & {
   value?: T;
@@ -30,6 +30,7 @@ export type SelectProps<T = any> = ButtonProps & {
     label: string | React.ReactNode;
     description?: string;
     value: T;
+    showBorder?: boolean;
   }[];
   isLoading?: boolean;
   onchange?: (val: T) => any | Promise<any>;
@@ -59,10 +60,10 @@ const MySelect = <T = any,>(
     display: 'flex',
     alignItems: 'center',
     _hover: {
-      backgroundColor: 'myWhite.600'
+      backgroundColor: 'myGray.100'
     },
     _notLast: {
-      mb: 2
+      mb: 1
     }
   };
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -107,16 +108,19 @@ const MySelect = <T = any,>(
           ref={ButtonRef}
           width={width}
           px={3}
-          rightIcon={<ChevronDownIcon />}
-          variant={'whitePrimary'}
+          rightIcon={<MyIcon name={'core/chat/chevronDown'} w={4} color={'myGray.500'} />}
+          variant={'whitePrimaryOutline'}
+          size={'md'}
+          fontSize={'sm'}
           textAlign={'left'}
           _active={{
             transform: 'none'
           }}
           {...(isOpen
             ? {
-                boxShadow: '0px 0px 4px #A8DBFF',
-                borderColor: 'primary.500'
+                boxShadow: '0px 0px 0px 2.4px rgba(51, 112, 255, 0.15)',
+                borderColor: 'primary.600',
+                color: 'primary.700'
               }
             : {})}
           {...props}
@@ -151,34 +155,37 @@ const MySelect = <T = any,>(
           overflowY={'auto'}
         >
           {list.map((item, i) => (
-            <MenuItem
-              key={i}
-              {...menuItemStyles}
-              {...(value === item.value
-                ? {
-                    ref: SelectedItemRef,
-                    color: 'primary.600',
-                    bg: 'myGray.100'
+            <Box key={i}>
+              <MenuItem
+                {...menuItemStyles}
+                {...(value === item.value
+                  ? {
+                      ref: SelectedItemRef,
+                      color: 'primary.700',
+                      bg: 'myGray.100',
+                      fontWeight: '600'
+                    }
+                  : {
+                      color: 'myGray.900'
+                    })}
+                onClick={() => {
+                  if (onChange && value !== item.value) {
+                    onChange(item.value);
                   }
-                : {
-                    color: 'myGray.900'
-                  })}
-              onClick={() => {
-                if (onChange && value !== item.value) {
-                  onChange(item.value);
-                }
-              }}
-              whiteSpace={'pre-wrap'}
-              fontSize={'sm'}
-              display={'block'}
-            >
-              <Box>{item.label}</Box>
-              {item.description && (
-                <Box color={'myGray.500'} fontSize={'xs'}>
-                  {item.description}
-                </Box>
-              )}
-            </MenuItem>
+                }}
+                whiteSpace={'pre-wrap'}
+                fontSize={'sm'}
+                display={'block'}
+              >
+                <Box>{item.label}</Box>
+                {item.description && (
+                  <Box color={'myGray.500'} fontSize={'xs'}>
+                    {item.description}
+                  </Box>
+                )}
+              </MenuItem>
+              {item.showBorder && <MyDivider my={2} />}
+            </Box>
           ))}
         </MenuList>
       </Menu>

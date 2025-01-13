@@ -13,12 +13,14 @@ import type {
 import type { GetDatasetCollectionsProps } from '@/global/core/api/datasetReq.d';
 import type {
   AddTagsToCollectionsParams,
+  ApiDatasetCreateDatasetCollectionParams,
   CreateDatasetCollectionParams,
   CreateDatasetCollectionTagParams,
   CsvTableCreateDatasetCollectionParams,
   DatasetUpdateBody,
   ExternalFileCreateDatasetCollectionParams,
   FileIdCreateDatasetCollectionParams,
+  reTrainingDatasetFileCollectionParams,
   LinkCreateDatasetCollectionParams,
   PostWebsiteSyncParams,
   TextCreateDatasetCollectionParams,
@@ -34,10 +36,7 @@ import type { CreateDatasetParams, InsertOneDatasetDataProps } from '@/global/co
 import type { DatasetCollectionItemType } from '@fastgpt/global/core/dataset/type';
 import { DatasetCollectionSyncResultEnum } from '@fastgpt/global/core/dataset/constants';
 import type { DatasetDataItemType } from '@fastgpt/global/core/dataset/type';
-import type {
-  DatasetCollectionsListItemType,
-  DatasetDataListItemType
-} from '@/global/core/dataset/type.d';
+import type { DatasetCollectionsListItemType } from '@/global/core/dataset/type.d';
 import { PagingData } from '@/types';
 import type { getDatasetTrainingQueueResponse } from '@/pages/api/core/dataset/training/getDatasetTrainingQueue';
 import type { rebuildEmbeddingBody } from '@/pages/api/core/dataset/training/rebuildEmbedding';
@@ -45,17 +44,30 @@ import type {
   PostPreviewFilesChunksProps,
   PreviewChunksResponse
 } from '@/pages/api/core/dataset/file/getPreviewChunks';
-import type { readCollectionSourceResponse } from '@/pages/api/core/dataset/collection/read';
+import type {
+  readCollectionSourceBody,
+  readCollectionSourceResponse
+} from '@/pages/api/core/dataset/collection/read';
 import type { GetDatasetListBody } from '@/pages/api/core/dataset/list';
 import type { UpdateDatasetCollectionParams } from '@/pages/api/core/dataset/collection/update';
 import type {
   GetDatasetDataListProps,
   GetDatasetDataListRes
-} from '@/pages/api/core/dataset/data/list';
+} from '@/pages/api/core/dataset/data/v2/list';
 import type { UpdateDatasetDataProps } from '@fastgpt/global/core/dataset/controller';
 import type { DatasetFolderCreateBody } from '@/pages/api/core/dataset/folder/create';
 import type { PaginationProps, PaginationResponse } from '@fastgpt/web/common/fetch/type';
 import type { GetScrollCollectionsProps } from '@/pages/api/core/dataset/collection/scrollList';
+import type {
+  GetApiDatasetFileListProps,
+  GetApiDatasetFileListResponse
+} from '@/pages/api/core/dataset/apiDataset/list';
+import type {
+  listExistIdQuery,
+  listExistIdResponse
+} from '@/pages/api/core/dataset/apiDataset/listExistId';
+import { FeishuServer, YuqueServer } from '@fastgpt/global/core/dataset/apiDataset';
+import { RequireOnlyOne } from '@fastgpt/global/common/type/utils';
 
 /* ======================== dataset ======================= */
 export const getDatasets = (data: GetDatasetListBody) =>
@@ -89,6 +101,9 @@ export const postCreateDatasetFolder = (data: DatasetFolderCreateBody) =>
 export const resumeInheritPer = (datasetId: string) =>
   GET(`/core/dataset/resumeInheritPermission`, { datasetId });
 
+export const postChangeOwner = (data: { ownerId: string; datasetId: string }) =>
+  POST(`/proApi/core/dataset/changeOwner`, data);
+
 /* =========== search test ============ */
 export const postSearchText = (data: SearchTestProps) =>
   POST<SearchTestResponse>(`/core/dataset/searchTest`, data);
@@ -106,6 +121,10 @@ export const postCreateDatasetFileCollection = (data: FileIdCreateDatasetCollect
   POST<{ collectionId: string }>(`/core/dataset/collection/create/fileId`, data, {
     timeout: 360000
   });
+export const postReTrainingDatasetFileCollection = (data: reTrainingDatasetFileCollectionParams) =>
+  POST<{ collectionId: string }>(`/core/dataset/collection/create/reTrainingCollection`, data, {
+    timeout: 360000
+  });
 export const postCreateDatasetLinkCollection = (data: LinkCreateDatasetCollectionParams) =>
   POST<{ collectionId: string }>(`/core/dataset/collection/create/link`, data);
 export const postCreateDatasetTextCollection = (data: TextCreateDatasetCollectionParams) =>
@@ -120,13 +139,19 @@ export const postCreateDatasetExternalFileCollection = (
   POST<{ collectionId: string }>(`/proApi/core/dataset/collection/create/externalFileUrl`, data, {
     timeout: 360000
   });
+export const postCreateDatasetApiDatasetCollection = (
+  data: ApiDatasetCreateDatasetCollectionParams
+) =>
+  POST<{ collectionId: string }>(`/core/dataset/collection/create/apiCollection`, data, {
+    timeout: 360000
+  });
 
 export const putDatasetCollectionById = (data: UpdateDatasetCollectionParams) =>
   POST(`/core/dataset/collection/update`, data);
 export const delDatasetCollectionById = (params: { id: string }) =>
   DELETE(`/core/dataset/collection/delete`, params);
 export const postLinkCollectionSync = (collectionId: string) =>
-  POST<DatasetCollectionSyncResultEnum>(`/core/dataset/collection/sync/link`, {
+  POST<DatasetCollectionSyncResultEnum>(`/core/dataset/collection/sync`, {
     collectionId
   });
 
@@ -159,7 +184,7 @@ export const getScrollCollectionList = (data: GetScrollCollectionsProps) =>
 /* =============================== data ==================================== */
 /* get dataset list */
 export const getDatasetDataList = (data: GetDatasetDataListProps) =>
-  POST<GetDatasetDataListRes>(`/core/dataset/data/list`, data);
+  POST<GetDatasetDataListRes>(`/core/dataset/data/v2/list`, data);
 
 export const getDatasetDataItemById = (id: string) =>
   GET<DatasetDataItemType>(`/core/dataset/data/detail`, { id });
@@ -197,5 +222,11 @@ export const getPreviewChunks = (data: PostPreviewFilesChunksProps) =>
   POST<PreviewChunksResponse>('/core/dataset/file/getPreviewChunks', data);
 
 /* ================== read source ======================== */
-export const getCollectionSource = (collectionId: string) =>
-  GET<readCollectionSourceResponse>('/core/dataset/collection/read', { collectionId });
+export const getCollectionSource = (data: readCollectionSourceBody) =>
+  POST<readCollectionSourceResponse>('/core/dataset/collection/read', data);
+
+/* ================== apiDataset ======================== */
+export const getApiDatasetFileList = (data: GetApiDatasetFileListProps) =>
+  POST<GetApiDatasetFileListResponse>('/core/dataset/apiDataset/list', data);
+export const getApiDatasetFileListExistId = (data: listExistIdQuery) =>
+  GET<listExistIdResponse>('/core/dataset/apiDataset/listExistId', data);
