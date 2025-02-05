@@ -5,26 +5,28 @@ import { useToast } from '@fastgpt/web/hooks/useToast';
 import { getErrText } from '@fastgpt/global/common/error/utils';
 import dynamic from 'next/dynamic';
 import PageContainer from '@/components/PageContainer';
-import { serviceSideProps } from '@/web/common/utils/i18n';
+import { serviceSideProps } from '@fastgpt/web/common/system/nextjs';
 import { useTranslation } from 'next-i18next';
-import MetaDataCard from './components/MetaDataCard';
-import NavBar from './components/NavBar';
+import MetaDataCard from '@/pageComponents/dataset/detail/MetaDataCard';
+import NavBar from '@/pageComponents/dataset/detail/NavBar';
 import MyBox from '@fastgpt/web/components/common/MyBox';
 import {
   DatasetPageContext,
   DatasetPageContextProvider
 } from '@/web/core/dataset/context/datasetPageContext';
-import CollectionPageContextProvider from './components/CollectionCard/Context';
+import CollectionPageContextProvider from '@/pageComponents/dataset/detail/CollectionCard/Context';
 import { useContextSelector } from 'use-context-selector';
 import NextHead from '@/components/common/NextHead';
 import { useRequest2 } from '@fastgpt/web/hooks/useRequest';
 import { useSystem } from '@fastgpt/web/hooks/useSystem';
 
-const CollectionCard = dynamic(() => import('./components/CollectionCard/index'));
-const DataCard = dynamic(() => import('./components/DataCard'));
-const Test = dynamic(() => import('./components/Test'));
-const Info = dynamic(() => import('./components/Info'));
-const Import = dynamic(() => import('./components/Import'));
+const CollectionCard = dynamic(
+  () => import('@/pageComponents/dataset/detail/CollectionCard/index')
+);
+const DataCard = dynamic(() => import('@/pageComponents/dataset/detail/DataCard'));
+const Test = dynamic(() => import('@/pageComponents/dataset/detail/Test'));
+const Info = dynamic(() => import('@/pageComponents/dataset/detail/Info/index'));
+const Import = dynamic(() => import('@/pageComponents/dataset/detail/Import'));
 
 export enum TabEnum {
   dataCard = 'dataCard',
@@ -69,7 +71,7 @@ const Detail = ({ datasetId, currentTab }: Props) => {
         <Flex h={'100%'} py={3} pl={1} pr={3} gap={2}>
           <Flex flex={1} w={0} bg={'white'} flexDir={'column'} boxShadow={'2'} borderRadius={'md'}>
             {currentTab !== TabEnum.import && <NavBar currentTab={currentTab} />}
-            <Box flex={'1'} overflow={'auto'}>
+            <Box flex={'1'} overflowY={'auto'}>
               {currentTab === TabEnum.collectionCard && (
                 <CollectionPageContextProvider>
                   <CollectionCard />

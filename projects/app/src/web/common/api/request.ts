@@ -8,6 +8,8 @@ import { clearToken } from '@/web/support/user/auth';
 import { TOKEN_ERROR_CODE } from '@fastgpt/global/common/error/errorCode';
 import { TeamErrEnum } from '@fastgpt/global/common/error/code/team';
 import { useSystemStore } from '../system/useSystemStore';
+import { getWebReqUrl } from '@fastgpt/web/common/system/utils';
+import { i18nT } from '@fastgpt/web/i18n/utils';
 
 interface ConfigType {
   headers?: { [key: string]: string };
@@ -38,7 +40,7 @@ function checkMaxQuantity({ url, maxQuantity }: { url: string; maxQuantity?: num
 
     if (item) {
       if (item.amount >= maxQuantity) {
-        item.sign?.abort?.();
+        !item.sign?.signal?.aborted && item.sign?.abort?.();
         maxQuantityMap[url] = {
           amount: 1,
           sign: controller
@@ -99,6 +101,7 @@ function checkRes(data: ResponseDataType) {
  */
 function responseError(err: any) {
   console.log('error->', '请求错误', err);
+  const data = err?.response?.data || err;
 
   if (!err) {
     return Promise.reject({ message: '未知错误' });
@@ -106,28 +109,34 @@ function responseError(err: any) {
   if (typeof err === 'string') {
     return Promise.reject({ message: err });
   }
-  // 有报错响应
-  if (err?.code in TOKEN_ERROR_CODE) {
-    clearToken();
+  if (typeof data === 'string') {
+    return Promise.reject(data);
+  }
 
-    if (
-      !(window.location.pathname === '/chat/share' || window.location.pathname === '/chat/team')
-    ) {
+  // 有报错响应
+  if (data?.code in TOKEN_ERROR_CODE) {
+    if (!['/chat/share', '/chat/team', '/login'].includes(window.location.pathname)) {
+      clearToken();
       window.location.replace(
-        `/login?lastRoute=${encodeURIComponent(location.pathname + location.search)}`
+        getWebReqUrl(`/login?lastRoute=${encodeURIComponent(location.pathname + location.search)}`)
       );
     }
 
-    return Promise.reject({ message: '无权操作' });
+    return Promise.reject({ message: i18nT('common:unauth_token') });
   }
-  if (err?.statusText === TeamErrEnum.aiPointsNotEnough) {
-    useSystemStore.getState().setIsNotSufficientModal(true);
-    return Promise.reject(err);
+  if (
+    data?.statusText === TeamErrEnum.aiPointsNotEnough ||
+    data?.statusText === TeamErrEnum.datasetSizeNotEnough ||
+    data?.statusText === TeamErrEnum.datasetAmountNotEnough ||
+    data?.statusText === TeamErrEnum.appAmountNotEnough ||
+    data?.statusText === TeamErrEnum.pluginAmountNotEnough ||
+    data?.statusText === TeamErrEnum.websiteSyncNotEnough ||
+    data?.statusText === TeamErrEnum.reRankNotEnough
+  ) {
+    useSystemStore.getState().setNotSufficientModalType(data.statusText);
+    return Promise.reject(data);
   }
-  if (err?.response?.data) {
-    return Promise.reject(err?.response?.data);
-  }
-  return Promise.reject(err);
+  return Promise.reject(data);
 }
 
 /* 创建请求实例 */
@@ -160,11 +169,11 @@ function request(
 
   return instance
     .request({
-      baseURL: '/api',
+      baseURL: getWebReqUrl('/api'),
       url,
       method,
-      data: ['POST', 'PUT'].includes(method) ? data : null,
-      params: !['POST', 'PUT'].includes(method) ? data : null,
+      data: ['POST', 'PUT'].includes(method) ? data : undefined,
+      params: !['POST', 'PUT'].includes(method) ? data : undefined,
       signal: cancelToken?.signal ?? controller?.signal,
       withCredentials,
       ...config // 用户自定义配置，可以覆盖前面的配置

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { ModalBody, useTheme, ModalFooter, Button, Box, Card, Flex, Grid } from '@chakra-ui/react';
 import { useTranslation } from 'next-i18next';
 import Avatar from '@fastgpt/web/components/common/Avatar';
@@ -10,10 +10,10 @@ import { AdminFbkType } from '@fastgpt/global/core/chat/type.d';
 import SelectCollections from '@/web/core/dataset/components/SelectCollections';
 import EmptyTip from '@fastgpt/web/components/common/EmptyTip';
 
-const InputDataModal = dynamic(() => import('@/pages/dataset/detail/components/InputDataModal'));
+const InputDataModal = dynamic(() => import('@/pageComponents/dataset/detail/InputDataModal'));
 
 export type AdminMarkType = {
-  dataId?: string;
+  feedbackDataId?: string;
   datasetId?: string;
   collectionId?: string;
   q: string;
@@ -137,7 +137,7 @@ const SelectMarkCollection = ({
             });
           }}
           collectionId={adminMarkData.collectionId}
-          dataId={adminMarkData.dataId}
+          dataId={adminMarkData.feedbackDataId}
           defaultValue={{
             q: adminMarkData.q,
             a: adminMarkData.a
@@ -153,7 +153,7 @@ const SelectMarkCollection = ({
             }
 
             onSuccess({
-              dataId: data.dataId,
+              feedbackDataId: data.dataId,
               datasetId: adminMarkData.datasetId,
               collectionId: adminMarkData.collectionId,
               q: data.q,
